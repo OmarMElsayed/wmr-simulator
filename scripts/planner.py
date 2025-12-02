@@ -469,7 +469,7 @@ if __name__ == "__main__":
     #   first: [x, y]      → no θ constraint
     #   second: [x, y, θ]  → enforce θ = π/4 at that waypoint
     intermediate_waypoints = [
-        [waypoints_x[1], waypoints_y[1]],               # unconstrained θ
+        [waypoints_x[1], waypoints_y[1], np.pi/12],               # unconstrained θ
         [waypoints_x[2], waypoints_y[2], np.pi/4],      # constrained θ
     ]
 

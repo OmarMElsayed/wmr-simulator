@@ -103,6 +103,16 @@ def plot(robot, estimator, reference_states, time, out_prefix="plot_trajectory")
 
     # Trim / extend to match states length if needed
     states = np.array(robot.log_states)
+    time = np.array(time)
+    if len(time) < len(states):
+        print("Extending time vector to match states length.")
+        last_time = time[-1]
+        dt = time[1] - time[0] if len(time) > 1 else 0.01
+        extra_times = np.arange(last_time + dt, last_time + dt * (len(states) - len(time) + 1), dt)
+        time = np.concatenate((time, extra_times))
+    elif len(time) > len(states):
+        print("Trimming time vector to match states length.")
+        time = time[:len(states)]
     N = len(states)
     est_pose_hat = est_pose_hat[:N]
     est_pose_meas = est_pose_meas[:N]

@@ -1,5 +1,6 @@
 import numpy as np
-class Controller:
+
+class LyapunovController:
     def __init__(self, robot_param, gains=None, cmd_limits=None, dt=0.1):
         if gains is None:
             self.gains = [5, 2, 2, 1.0, 1.0, 0.1, 0.1]
@@ -14,6 +15,7 @@ class Controller:
         self.L = robot_param['base_diameter']  # wheelbase
         self.cmd_limits = cmd_limits
         self.dt = dt
+        self.name = "lyapunov"
 
     def compute(self, refstate, pose_state, wheel_meas):
         """
@@ -29,9 +31,9 @@ class Controller:
         ur_cmd, ul_cmd = self._wheel_speed_control((ur_ref, ul_ref), wheel_meas)
         # 3) saturation on commands here 
         if self.cmd_limits is not None:
-            umin, umax = self.cmd_limits
-            ur_cmd = float(np.clip(ur_cmd, umin, umax))
-            ul_cmd = float(np.clip(ul_cmd, umin, umax))
+            umin_right, umax_right, umin_left, umax_left = self.cmd_limits
+            ur_cmd = float(np.clip(ur_cmd, umin_right, umax_right))
+            ul_cmd = float(np.clip(ul_cmd, umin_left, umax_left))
 
         return ur_cmd, ul_cmd
 
@@ -73,4 +75,5 @@ class Controller:
 
     def _wrap_to_pi(self, angle):
         return (angle + np.pi) % (2 * np.pi) - np.pi
+
 

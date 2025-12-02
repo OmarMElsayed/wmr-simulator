@@ -1,0 +1,68 @@
+sim_time: 5.0 # seconds
+time_step: 0.1 # seconds
+environment:
+  max: [5, 5]
+  min: [-5, -5]
+  obstacles: []
+  output:
+    - name: "trajectory"
+      type: "array"
+      params:
+        - name: "x"
+          type: "float"
+          size: 100
+        - name: "y"
+          type: "float"
+          size: 100
+        - name: "theta"
+          type: "float"
+          size: 100
+    - name: "total_time"
+      type: "float"
+start: [0.0, 0.0, 0.0]
+goal:  [2.0, 1.0, 1.57]
+planner: 
+  waypoints:
+    - [0.5,0.0, -1.57]
+    - [1.0,0.5, 1.57]
+  time: 4.0 # seconds
+controller:
+  gains: [5.0, 5.0, 3.0, 0.4, 0.4, 0.2, 0.2] # [kx, ky, kth, kprmotor, kplmotor, kirmotor, kilmotor]
+robotcfg: 
+  type: differential_drive
+  wheel_radius: 0.015  # m
+  base_diameter: 0.09  # m
+  distance_between_wheels: 0.089 # m
+  max_wheel_speed: 150 # rad/s
+  max_vel_leftwheel: 157.08 # rad/s
+  min_vel_leftwheel: 15 # rad/s
+  max_vel_rightwheel: 77.08 # rad/s
+  min_vel_rightwheel: 15 # rad/s
+  time_constant:  0.01  # time constant for first-order wheel dynamics (set to 0 for ideal actuation)
+  slip_r: 0.4          # std of fractional slip on ur (40%) [0 -> 1.0]
+  slip_l: 0.5          # std of fractional slip on ul (50%) [0 -> 1.0]
+
+estimator:
+  type: "df"              # estimator type: "kf" (Kalman Filter) or "df" (Dead Reckoning)
+  wheel_radius: 0.016     # estimator's wheel_radius [m]
+  base_diameter: 0.1      # estimator's base_diameter [m]
+  noise_pos: 0.0001       # position measurement noise [m] (from mocap almost no noise)  
+  noise_angle: 0.07       # orientation noise [rad] ~  4 degrees
+  enc_angle_noise: 0.01   # encoder noise   
+  
+  proc_pos_std: 0.1       # [m]   process noise on x,y per step
+  proc_theta_std: 0.05    # [rad] process noise on θ per step
+
+  start: [0.0, 0.0, 0.0]  # initial pose estimate
+
+problem: "realtimedbastar"
+robot: differential drive
+states: [x, y , theta]
+distance: squareroot((x2-x1)^2 + (y2-y1)^2) + abs(theta2-theta1)
+min_distance_to_goal: 1.5
+wheel_radius: 0.015  # m
+distance_between_wheels: 0.089 # m
+max_vel_leftwheel: 157.08 # rad/s
+min_vel_leftwheel: 15 # rad/s
+max_vel_rightwheel: 77.08 # rad/s
+min_vel_rightwheel: 15 # rad/s

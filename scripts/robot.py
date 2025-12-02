@@ -11,7 +11,10 @@ class DiffDrive:
         self.r = robot_cfg['wheel_radius']
         self.L = robot_cfg['base_diameter']
         # max wheel speed
-        self.max_wheel_speed = robot_cfg['max_wheel_speed']
+        self.max_vel_leftwheel = robot_cfg['max_vel_leftwheel']
+        self.max_vel_rightwheel = robot_cfg['max_vel_rightwheel']
+        self.min_vel_leftwheel = robot_cfg['min_vel_leftwheel']
+        self.min_vel_rightwheel = robot_cfg['min_vel_rightwheel']
         # robot time step
         self.dt = dt
         # motor time constant
@@ -39,10 +42,10 @@ class DiffDrive:
         self.goal = np.array(goal)
 
     def step(self, u):
-        ur_cmd, ul_cmd = u
+        ul_cmd, ur_cmd = u
         # 1) Saturate wheel commands
-        ur_cmd = np.clip(ur_cmd, -self.max_wheel_speed, self.max_wheel_speed)
-        ul_cmd = np.clip(ul_cmd, -self.max_wheel_speed, self.max_wheel_speed)
+        ur_cmd = np.clip(ur_cmd, self.min_vel_rightwheel, self.max_vel_rightwheel)
+        ul_cmd = np.clip(ul_cmd, self.min_vel_leftwheel, self.max_vel_leftwheel)
 
         # 2) First-order wheel dynamics (discrete)
         self.ur = self.alpha * self.ur + (1.0 - self.alpha) * ur_cmd
