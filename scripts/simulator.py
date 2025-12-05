@@ -8,7 +8,7 @@ import argparse
 import yaml
 from visualize import visualize, plot
 
-
+##### KHALED WAHBA AUTHOR
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument("--problem", type=str, default="problems/empty.yaml", help="path to problem and robot description yaml file")
@@ -27,6 +27,7 @@ if __name__ == "__main__":
     sim_time_grid = np.linspace(0, sim_N * dt, sim_N + 1)
     start = problem["start"]
     goal = problem["goal"]
+    min_distance_to_goal = problem["controllers"]["mpc"]["min_distance_to_goal"]
 
     # Initialize robot and estimator
     robot_cfg = problem["robotcfg"]
@@ -46,7 +47,6 @@ if __name__ == "__main__":
     # Estimator uses robot+estimator params
     estimator = DiffDriveEstimator(estimator_cfg=est_cfg,
                                 dt=dt)    # simulation time horizon
-    
     # Initialize controller(s)
     controllers = problem["controllers"]
     controller_objects = []
@@ -58,13 +58,10 @@ if __name__ == "__main__":
                             dt=dt)
             controller_objects.append(ctrl)
         elif "mpc" in controller_key:
-            qto_mpc = QTO_MPC(robot_param=est_cfg, environment=problem["environment"],
-                                        cmd_limits=[robot_cfg["min_vel_leftwheel"], robot_cfg["max_vel_leftwheel"], robot_cfg["min_vel_rightwheel"], robot_cfg["max_vel_rightwheel"]],
-                                        mpc_params=controller_item, dt=dt) # TODO: fix arguments here
-            # qto_mpc.initiaize_variables()
-            mpc_params = controller_item
+            qto_mpc = QTO_MPC(robot_param=problem) # TODO: fix arguments here
+            # mpc_params = controller_item
             controller_objects.append(qto_mpc)
-            #TODO: implement MPC controller initialization
+            # # TODO: implement MPC controller initialization
             pass
         elif "realtime_dbA" in controller_key:
             #TODO: implement realtime dBA controller initialization
@@ -94,7 +91,7 @@ if __name__ == "__main__":
             if controller.name == "lyapunov":
                 u = controller.compute(ref_state, pose_est, wheel_est)
             elif controller.name == "mpc":
-                if qto_mpc.goal_reached(pose_true, goal, 1.5):
+                if qto_mpc.goal_reached(pose_true, goal, min_distance_to_goal):
                     print(40 * "-")
                     print(f"Goal reached at time {k*dt:.2f} seconds.")
                     print(40 * "-")

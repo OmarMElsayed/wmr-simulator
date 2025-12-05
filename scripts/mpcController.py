@@ -9,16 +9,19 @@ import matplotlib.pyplot as plt
 class QTO_MPC():
     """Quasi Time-Optimal Model Predictive Control (QTO-MPC) class."""
     
-    def __init__(self, robot_param, environment, cmd_limits,dt, mpc_params = None):
+    def __init__(self, robot_param):
+        environment = robot_param["environment"]
+        cmd_limits = [robot_param["robotcfg"]["min_vel_leftwheel"], robot_param["robotcfg"]["max_vel_leftwheel"], robot_param["robotcfg"]["min_vel_rightwheel"], robot_param["robotcfg"]["max_vel_rightwheel"]]
+        dt = robot_param["time_step"]
         # MPC parameters
-        self.N = mpc_params["horizon"]     # Prediction horizon
+        self.N = 20     # Prediction horizon
         self.dt = dt   # Sampling time [s]
         self.nx = 3     # Number of states
         self.nu = 2     # Number of controls
         self.name = "mpc"
         # Robot parameters
-        self.wheel_radius = robot_param["wheel_radius"] 
-        self.distance_between_wheels = robot_param["base_diameter"] 
+        self.wheel_radius = robot_param["robotcfg"]["wheel_radius"] 
+        self.distance_between_wheels = robot_param["robotcfg"]["base_diameter"] 
 
         # State limits
         x_min = [environment["min"][0], environment["min"][1], -ca.inf]
@@ -167,15 +170,11 @@ class QTO_MPC():
         return u_opt
         # Define helper functions and the MPC planner
 
-# # config_file = "../configs/config.yaml"
-config_file = "problems/empty.yaml"
-
-with open(config_file, "r") as file:
-    config = yaml.safe_load(file)
 
 # wheel_radius = config["wheel_radius"] / 1000.0  # Convert mm to m
-wheel_radius = config["wheel_radius"]
-distance_between_wheels = config["distance_between_wheels"]
+# wheel_radius = robot_param["robotcfg"]["wheel_radius"]
+# wheel_radius = self.wheel_radius
+# distance_between_wheels = robot_param["robotcfg"]["base_diameter"]
 
 def simulator(x, u, dt=0.01):
     v_left, v_right = u[0], u[1]
@@ -195,47 +194,47 @@ def goal_reached(x, goal, min_dist):
     dist = np.linalg.norm(np.array(x[:2]) - np.array(goal[:2])) + np.abs(x[2] - goal[2])
     return dist < min_dist
 
-qto_mpc = QTO_MPC(config)
-# Run simulation
+# qto_mpc = QTO_MPC(config)
+# # Run simulation
 
-start = config["start"]
-goal = config["goal"]
-min_distance_to_goal = config["min_distance_to_goal"]
-time_step = config["time_step"]
-N_steps = config["environment"]["output"][0]["params"][0]["size"]
+# start = robot_param["start"]
+# goal = robot_param["goal"]
+# min_distance_to_goal = corobot_paramnfig["controllers"]["mpc"]["min_distance_to_goal"]
+# time_step = robot_param["time_step"]
+# N_steps = int(robot_param["sim_time"]/robot_param["time_step"])
 
-x_traj = np.zeros((N_steps, 3))
-u_traj = np.zeros((N_steps, 2))
+# x_traj = np.zeros((N_steps, 3))
+# u_traj = np.zeros((N_steps, 2))
 
-x_traj[0] = start
-qto_mpc.initiaize_variables()
+# x_traj[0] = start
+# qto_mpc.initiaize_variables()
 
-for i in range(N_steps):
-    if goal_reached(x_traj[i], goal, min_distance_to_goal):
-        print(40 * "-")
-        print(f"Goal reached at time {i*time_step:.2f} seconds.")
-        print(40 * "-")
-        x_traj[i + 1:] = x_traj[i]
-        break
+# for i in range(N_steps-1):
+#     if goal_reached(x_traj[i], goal, min_distance_to_goal):
+#         print(40 * "-")
+#         print(f"Goal reached at time {i*time_step:.2f} seconds.")
+#         print(40 * "-")
+#         x_traj[i + 1:] = x_traj[i]
+#         break
 
-    u_opt = qto_mpc.solve(x_traj[i], goal)
-    u_traj[i] = u_opt
-    x_traj[i + 1] = simulator(x_traj[i], u_opt, dt=time_step)
+#     u_opt = qto_mpc.solve(x_traj[i], goal)
+#     u_traj[i] = u_opt
+#     x_traj[i + 1] = simulator(x_traj[i], u_opt, dt=time_step)
 
-    # Visualize results
+#     # Visualize results
 
-def plot_robot(ax, x, y, theta, color="r", size=0.3, alpha=0.7):
-    triangle = np.array([
-        [size, 0],
-        [-size/2, size/2],
-        [-size/2, -size/2]
-    ])
-    R = np.array([
-        [np.cos(theta), -np.sin(theta)],
-        [np.sin(theta),  np.cos(theta)]
-    ])
-    tri_world = (R @ triangle.T).T + np.array([x, y])
-    ax.fill(tri_world[:, 0], tri_world[:, 1], color=color, alpha=alpha)
+# def plot_robot(ax, x, y, theta, color="r", size=0.3, alpha=0.7):
+#     triangle = np.array([
+#         [size, 0],
+#         [-size/2, size/2],
+#         [-size/2, -size/2]
+#     ])
+#     R = np.array([
+#         [np.cos(theta), -np.sin(theta)],
+#         [np.sin(theta),  np.cos(theta)]
+#     ])
+#     tri_world = (R @ triangle.T).T + np.array([x, y])
+#     ax.fill(tri_world[:, 0], tri_world[:, 1], color=color, alpha=alpha)
 
 # fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(12, 5))
 
